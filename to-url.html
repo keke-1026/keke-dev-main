@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>転送中 - keke-dev</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: #ffffff;
+            color: #1f2937;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+        .container {
+            max-width: 400px;
+            padding: 20px;
+        }
+        .loader {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 20px;
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .container.error .loader { display: none; }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .message {
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+        .target-path {
+            font-family: monospace;
+            display: block;
+            margin-top: 10px;
+            color: #3b82f6;
+            word-break: break-all;
+        }
+        .container.error .target-path { color: #ef4444; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="box">
+    <div class="loader"></div>
+    <div class="message">
+        <span id="label">転送しています</span>
+        <span id="display-path" class="target-path">読み込み中...</span>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const params = new URLSearchParams(window.location.search);
+
+        function resolveTarget() {
+            const raw = (params.get('url') || '').trim();
+            if (raw) {
+                if (/^https?:\/\//i.test(raw)) return raw;
+                if (/^[a-z][a-z0-9+.-]*:(?!\/\/|\d)/i.test(raw)) return null;
+                return 'https://' + raw.replace(/^\/\//, '');
+            }
+
+            const data = (params.get('data') || '').trim();
+            if (data) {
+                const hasExtension = data.includes('.');
+                const hasPath = data.includes('/');
+                return 'https://' + (hasExtension || hasPath ? data : data + '.html');
+            }
+            return undefined;
+        }
+
+        function fail(msg, detail) {
+            document.getElementById('box').classList.add('error');
+            document.getElementById('label').textContent = msg;
+            document.getElementById('display-path').textContent = detail || '';
+        }
+
+        const target = resolveTarget();
+        if (target === undefined) { fail('転送先が指定されていません', '?url=https://example.com のように指定してください'); return; }
+        if (target === null) { fail('このURLには転送できません', 'http:// か https:// のURLのみ使えます'); return; }
+
+        let finalUrl;
+        try {
+            const u = new URL(target);
+            if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error('bad protocol');
+            finalUrl = u.href;
+        } catch (e) {
+            fail('URLが正しくありません', target);
+            return;
+        }
+
+        document.getElementById('display-path').textContent = finalUrl;
+
+        setTimeout(() => {
+            window.location.replace(finalUrl);
+        }, 800);
+    })();
+</script>
+
+</body>
+</html>
