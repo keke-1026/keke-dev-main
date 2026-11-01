@@ -41,13 +41,20 @@
       "まだまだいっぱいあるからね"
     ]
   },
-  "like": {
+  "likes": {
     "paragraphs": [
-      "音ゲーが好きなので簡単に乗せてきます",
-      "特にmaimaiとプロセカが好きです｡",
-      "maimaiは､maimaiでしかできない曲をやるのが楽しいです｡",
-      "プロセカは､プロセカでしかできない曲をやるのが楽しいです｡",
-      "あと､プロセカはストーリーも面白いです｡"
+      "好きなもの乗せます↓",
+      "----------------------------------------",
+      "maimai,プロセカ,ボカロ,曲,ゲーム,プログラミング,パソコン,スマホ",
+      "maimai → 色んな曲がプロセカと違いフルで入っている 音ゲーとしても楽しい",
+      "プロセカ → スマホでできて連打力鍛えれる シングル10秒で201とかいうバケモンがこの世にいるけど...(ｽｺﾞｲ)",
+      "ボカロ → ミク,リン,レン,MEIKO が好き どれもいいけどね",
+      "曲 → いろんな曲が好き 音楽はセカイを変えてくれた",
+      "ゲーム → 上の音ゲーにプラスで､ Roblox,マイクラとかやってる",
+      "プログラミング → 楽しいけどだるい",
+      "パソコン → 結構得意 <a href='to-url.html?url=https://youtube.com/channel/UCdd64FlemydZH2Xq1PsmCAA'>やまかわてるき</a>さんの動画めっちゃいい",
+      "スマホ → 便利だよね～ 高いけど",
+      "まだまだいっぱいあるけど書ききれないからやめとく"
     ]
   },
   "works": [
@@ -60,12 +67,40 @@
       "title": "i-Filter 規制画面",
       "description": "タイトルの通りです｡i-Filterの規制画面を再現しました｡(持ってきただけ)",
       "link": "8080block.html"
+    },
+    {
+      "title": "boxblox",
+      "description": "ただのオンライン3Dゲー テストで作った",
+      "link": "to-url.html?url=https://boxblox.ke2.jp/"
+    },
+    {
+      "title": "selfxss.js",
+      "description": "SelfXSSを防ぐ(防げるとは言っていない)js",
+      "link": "to-url.html?url=https://keke-dev.net/selfxss.js"
+    },
+    {
+      "title": "404",
+      "description": "マジの404",
+      "link": "to-url.html?url=https://keke-dev.net/404.html"
+    },
+    {
+      "title": "マジでヤバい神過ぎるサイト!",
+      "description": "マジの神サイト 1回は見といたほうが人生役に立つ",
+      "link": "to-url.html?url=https://ke2.jp/rickurole"
     }
   ],
   "relatedLinks": [
     {
       "title": "karotter",
       "url": "to-url.html?url=karotter.com/@keke"
+    },
+    {
+      "title": "keke-dev.net",
+      "url": "to-url.html?url=keke-dev.net"
+    },
+    {
+      "title": "GitHub",
+      "url": "to-url.html?url=github.com/keke-1026/keke-dev-main"
     }
   ]
 }

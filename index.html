@@ -8,16 +8,17 @@
   <title>keke-dev.net</title>
   <link rel="icon" href="favicon.png" type="image/png">
 
+  <!-- data.json はページの表示に必須なので、HTMLの解析中から先に取りに行く -->
+  <link rel="preload" href="data.json" as="fetch" crossorigin>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@200;300;400&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 
   <style>
     :root {
       color-scheme: dark;
       --bg: #121212;
-      --panel: #1a1a1a;
       --text: #eeeeee;
       --line: #2e2e2e;
       --glow1: rgba(90, 120, 255, 0.12);
@@ -43,8 +44,11 @@
         radial-gradient(50vmax 50vmax at -10% 110%, var(--glow2), transparent 60%);
     }
     a { color: inherit; }
-    button, input { font-family: inherit; font-weight: inherit; color: inherit; outline: none; }
-    .material-symbols-outlined { font-size: 18px; vertical-align: middle; }
+    button { font-family: inherit; font-weight: inherit; color: inherit; outline: none; }
+    /* マウスでは枠を出さず、キーボード操作のときだけフォーカス位置を見せる */
+    :focus-visible { outline: 1px solid rgba(255, 255, 255, 0.55); outline-offset: 3px; border-radius: 3px; }
+
+    .ico { width: 18px; height: 18px; fill: currentColor; vertical-align: middle; flex: none; }
 
     .icon-btn { background: none; border: none; padding: 4px; cursor: pointer; display: inline-flex; align-items: center; opacity: 0.8; }
     .icon-btn:hover:not(:disabled) { opacity: 0.5; }
@@ -67,11 +71,10 @@
     nav { margin-top: 48px; display: flex; flex-direction: column; gap: 6px; }
     .nav-btn {
       background: none; border: none; padding: 4px 0; cursor: pointer; text-align: left;
-      display: flex; align-items: baseline; gap: 14px; font-size: 20px; font-weight: 300;
+      font-size: 20px; font-weight: 300;
       opacity: 0.35; transition: opacity 0.3s, transform 0.3s;
     }
     .nav-btn[hidden] { display: none; }
-    .nav-btn .num { font-size: 11px; letter-spacing: 1px; width: 18px; }
     .nav-btn:hover { opacity: 0.7; }
     .nav-btn.active { opacity: 1; transform: translateX(8px); }
 
@@ -91,7 +94,6 @@
     .panel::-webkit-scrollbar { display: none; }
     .panel.active { opacity: 1; visibility: visible; transform: none; }
     .label { font-size: 12px; opacity: 0.6; letter-spacing: 1px; margin-bottom: 22px; }
-    .muted { font-size: 14px; opacity: 0.5; }
 
     .about-text { max-width: 560px; font-size: 16px; }
     .about-text p { margin: 0 0 1em; white-space: pre-wrap; }
@@ -131,18 +133,7 @@
       transition: padding 0.25s, opacity 0.25s;
     }
     .link-row:hover { padding-left: 10px; opacity: 0.6; }
-    .link-row .material-symbols-outlined { opacity: 0.5; }
-
-    .activity-sub { font-size: 12px; opacity: 0.45; margin: -14px 0 18px; }
-    .activity-list { display: flex; flex-direction: column; max-width: 640px; }
-    .commit {
-      display: flex; align-items: baseline; justify-content: space-between; gap: 18px;
-      padding: 12px 0; border-bottom: 1px solid var(--line); text-decoration: none; font-size: 15px;
-      animation: rise 0.45s ease both; transition: padding 0.25s, opacity 0.25s;
-    }
-    .commit:hover { padding-left: 10px; opacity: 0.6; }
-    .commit .msg { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-    .commit .meta { font-size: 12px; opacity: 0.5; flex: none; }
+    .link-row .ico { opacity: 0.5; }
 
     @media (max-width: 700px) {
       .stage { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr auto; gap: 0; padding: 22px 22px 16px; }
@@ -151,7 +142,6 @@
       h1 { font-size: 24px; }
       nav { grid-row: 2; flex-direction: row; flex-wrap: wrap; gap: 4px 16px; margin: 18px 0 22px; }
       .nav-btn { font-size: 15px; }
-      .nav-btn .num { display: none; }
       .nav-btn.active { transform: none; border-bottom: 1px solid currentColor; }
       .main { grid-row: 3; }
       .side-bottom { grid-row: 4; margin-top: 14px; gap: 8px; }
@@ -161,11 +151,21 @@
       .about-text { font-size: 15px; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .panel, .nav-btn, .work, .commit { transition: none; animation: none; }
+      .panel, .nav-btn, .work { transition: none; animation: none; }
     }
   </style>
 </head>
 <body>
+  <!-- アイコン（外部フォントの代わりに最小限のSVGだけ持つ） -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="i-arrow_outward" viewBox="0 0 24 24"><path d="M9 5v2h6.59L4 18.59 5.41 20 17 8.41V15h2V5z"/></symbol>
+    <symbol id="i-arrow_forward" viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></symbol>
+    <symbol id="i-chevron_left" viewBox="0 0 24 24"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></symbol>
+    <symbol id="i-chevron_right" viewBox="0 0 24 24"><path d="M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/></symbol>
+    <symbol id="i-open_in_new" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></symbol>
+  </svg>
+
   <div class="keepandroidopen">
     <script src="https://keepandroidopen.org/banner.js?lang=ja&size=mini&id=keke-dev"></script>
   </div>
@@ -178,15 +178,15 @@
       </div>
 
       <nav>
-        <button class="nav-btn active" data-target="about"></span>私について</button>
-        <button class="nav-btn" data-target="works"></span>制作物</button>
-        <button class="nav-btn" data-target="links"></span>リンク</button>
-        <button class="nav-btn" data-target="likes"></span>好きなこと</button>
+        <button class="nav-btn active" data-target="about">私について</button>
+        <button class="nav-btn" data-target="works">制作物</button>
+        <button class="nav-btn" data-target="links">リンク</button>
+        <button class="nav-btn" data-target="likes" hidden>好きなこと</button>
       </nav>
 
       <div class="side-bottom">
         <div class="counter">
-          <img src="http://counter.linkserver.jp/@public_main?name=public_main&theme=miku&padding=6&offset=0&align=top&scale=1&pixelated=1&darkmode=auto" alt="カウンター">
+          <img src="http://counter.linkserver.jp/@public_main?name=public_main&theme=miku&padding=6&offset=0&align=top&scale=1&pixelated=1&darkmode=auto" alt="カウンター" decoding="async">
         </div>
         <div class="footer">&copy; 2026 keke-dev.net<br><a class="commit-id" id="commit-id" href="#" target="_blank" rel="noopener" hidden></a></div>
       </div>
@@ -202,10 +202,10 @@
         <div class="label">制作物</div>
         <div class="works-grid" id="works-grid"></div>
         <div class="pager" id="pager">
-          <button class="icon-btn" id="prev" aria-label="前へ"><span class="material-symbols-outlined">chevron_left</span></button>
+          <button class="icon-btn" id="prev" aria-label="前へ"><svg class="ico"><use href="#i-chevron_left"/></svg></button>
           <span class="count" id="page-count"></span>
-          <button class="icon-btn" id="next" aria-label="次へ"><span class="material-symbols-outlined">chevron_right</span></button>
-          <a class="pager-all" href="to-project.html" target="_blank">作品一覧 <span class="material-symbols-outlined">arrow_forward</span></a>
+          <button class="icon-btn" id="next" aria-label="次へ"><svg class="ico"><use href="#i-chevron_right"/></svg></button>
+          <a class="pager-all" href="to-project.html" target="_blank">作品一覧 <svg class="ico"><use href="#i-arrow_forward"/></svg></a>
         </div>
       </section>
 
@@ -214,7 +214,7 @@
         <div class="links-list" id="links-list"></div>
       </section>
 
-      <section class="panel active" id="panel-likes">
+      <section class="panel" id="panel-likes">
         <div class="label">好きなこと</div>
         <div id="likes-container"></div>
       </section>
@@ -223,153 +223,149 @@
 
   <script src="selfxss.js"></script>
   <script>
-    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-    const REPO = 'keke-1026/keke-dev.net';
+    const REPO = 'keke-1026/keke-dev-main';
     const FORM_URL = 'mailto:keikeiy1026@gmail.com';
 
+    // http / https / mailto と相対パスだけを許可（javascript: などは弾く）
     const safeUrl = x => {
       try { const p = new URL(x, location.href); return /^(https?:|mailto:)$/.test(p.protocol) ? p.href : null; }
       catch (e) { return null; }
     };
-    const hrefOf = x => esc(safeUrl(x) || '#');
-    const SECTIONS = ['about', 'works', 'links', 'music-game'];
-    const sectionList = () => SECTIONS;
-    let current = 'about';
+    // リンクの属性。mailto 以外は新しいタブで開く（mailto に target を付けると空のタブが残ることがある）
+    const linkAttrs = x => {
+      const u = safeUrl(x);
+      return `href="${esc(u || '#')}"${u && !u.startsWith('mailto:') ? ' target="_blank" rel="noopener"' : ''}`;
+    };
+    // data.json の "icon" に使える名前。それ以外は arrow_outward になる
+    const ICONS = new Set(['arrow_outward', 'open_in_new', 'mail', 'arrow_forward']);
+    const icon = name => `<svg class="ico" aria-hidden="true"><use href="#i-${ICONS.has(name) ? name : 'arrow_outward'}"/></svg>`;
+
+    // ============ パネル切り替え ============
+    // 切り替え先は HTML のボタン（data-target）から自動で決まる。hidden のボタンは対象外
+    const navBtns = [...document.querySelectorAll('.nav-btn')];
+    const panels = new Map([...document.querySelectorAll('.panel')].map(p => [p.id.slice(6), p]));
+    const sectionList = () => navBtns.filter(b => !b.hidden).map(b => b.dataset.target);
     function show(name, pushHash = true) {
       if (!sectionList().includes(name)) return;
-      current = name;
-      document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.target === name));
+      panels.forEach((p, k) => p.classList.toggle('active', k === name));
+      navBtns.forEach(b => b.classList.toggle('active', b.dataset.target === name));
       if (pushHash) { try { history.replaceState(null, '', '#' + name); } catch (e) {} }
-      if (name === 'activity') loadActivity();
     }
-    document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click', e => { show(b.dataset.target); e.currentTarget.blur(); }));
+    const applyHash = () => { const h = location.hash.slice(1); if (sectionList().includes(h)) show(h, false); };
+    navBtns.forEach(b => b.addEventListener('click', () => show(b.dataset.target)));
 
+    // ============ 制作物（ページ送り） ============
     let works = [], page = 0;
     const mqMobile = window.matchMedia('(max-width: 700px)');
     const perPage = () => mqMobile.matches ? 2 : 4;
     function renderWorks() {
-      const grid = $('works-grid'), pager = $('pager');
       const per = perPage(), pages = Math.max(1, Math.ceil(works.length / per));
       page = Math.max(0, Math.min(page, pages - 1));
-      const slice = works.slice(page * per, page * per + per);
-      grid.innerHTML = slice.map((w, i) =>
-        `<div class="work" style="animation-delay:${i * 60}ms">
+      $('works-grid').innerHTML = works.slice(page * per, page * per + per).map((w, i) => {
+        const img = w.image && safeUrl(w.image);
+        return `<div class="work" style="animation-delay:${i * 60}ms">
            <span class="idx">${String(page * per + i + 1).padStart(2, '0')}</span>
            <span class="name">${esc(w.title)}</span>
-           ${w.image && safeUrl(w.image) ? `<img class="thumb" src="${esc(safeUrl(w.image))}" alt="${esc(w.alt || w.title)}" loading="lazy">` : ''}
+           ${img ? `<img class="thumb" src="${esc(img)}" alt="${esc(w.alt || w.title)}" loading="lazy" decoding="async">` : ''}
            <span class="desc">${esc(w.description)}</span>
-           <a class="open" href="${hrefOf(w.link)}" target="_blank" rel="noopener">開く</a>
-         </div>`).join('');
+           <a class="open" ${linkAttrs(w.link)}>開く</a>
+         </div>`;
+      }).join('');
       $('page-count').textContent = `${page + 1} / ${pages}`;
       $('prev').disabled = page === 0;
       $('next').disabled = page >= pages - 1;
       const vis = pages > 1 ? 'visible' : 'hidden';
       $('prev').style.visibility = $('next').style.visibility = $('page-count').style.visibility = vis;
     }
-    function turn(d) { page += d; renderWorks(); }
-    $('prev').addEventListener('click', e => { turn(-1); e.currentTarget.blur(); });
-    $('next').addEventListener('click', e => { turn(1); e.currentTarget.blur(); });
+    const turn = d => { page += d; renderWorks(); };
+    $('prev').addEventListener('click', () => turn(-1));
+    $('next').addEventListener('click', () => turn(1));
     mqMobile.addEventListener('change', renderWorks);
 
-    let activityLoaded = false;
-    function relTime(iso) {
-      const diff = (new Date(iso).getTime() - Date.now()) / 1000;
-      const rtf = new Intl.RelativeTimeFormat('ja', { numeric: 'auto' });
-      const units = [['year', 31536000], ['month', 2592000], ['day', 86400], ['hour', 3600], ['minute', 60]];
-      for (const [u, s] of units) if (Math.abs(diff) >= s) return rtf.format(Math.round(diff / s), u);
-      return 'たった今';
-    }
-    function renderCommits(list) {
-      if (!list.length) { $('activity-list').innerHTML = '<div class="muted">コミットがありません</div>'; return; }
-      $('activity-list').innerHTML = list.map((c, i) => {
-        const msg = (c.commit.message || '').split('\n')[0];
-        return `<a class="commit" style="animation-delay:${i * 50}ms" href="${esc(c.html_url)}" target="_blank" rel="noopener">
-                  <span class="msg">${esc(msg)}</span>
-                  <span class="meta">${esc(c.sha.slice(0, 7))} · ${esc(relTime(c.commit.author.date))}</span>
-                </a>`;
-      }).join('');
-    }
-    async function getCommits() {
+    // ============ フッターの最新コミットID ============
+    // 最新の1件だけ取得し、10分間は localStorage に保存して再利用（GitHub API の回数制限対策）
+    async function getHead() {
+      const KEY = 'gh_head:' + REPO;
       try {
-        const c = JSON.parse(sessionStorage.getItem('gh_commits') || 'null');
+        const c = JSON.parse(localStorage.getItem(KEY) || 'null');
         if (c && Date.now() - c.t < 10 * 60 * 1000) return c.data;
       } catch (e) {}
-      const r = await fetch(`https://api.github.com/repos/${REPO}/commits?per_page=6`, { headers: { Accept: 'application/vnd.github+json' } });
+      const r = await fetch(`https://api.github.com/repos/${REPO}/commits?per_page=1`, { headers: { Accept: 'application/vnd.github+json' } });
       if (!r.ok) throw new Error('HTTP ' + r.status);
-      const data = await r.json();
-      try { sessionStorage.setItem('gh_commits', JSON.stringify({ t: Date.now(), data })); } catch (e) {}
+      const [c] = await r.json();
+      const data = c && { sha: c.sha, url: c.html_url, msg: (c.commit.message || '').split('\n')[0] };
+      try { localStorage.setItem(KEY, JSON.stringify({ t: Date.now(), data })); } catch (e) {}
       return data;
     }
-    async function loadActivity() {
-      if (activityLoaded) return;
-      activityLoaded = true;
-      $('activity-list').innerHTML = '<div class="muted">読み込み中…</div>';
-      try {
-        renderCommits(await getCommits());
-      } catch (e) {
-        activityLoaded = false;
-        $('activity-list').innerHTML = '<div class="muted">取得できませんでした</div>';
-      }
-    }
-
     async function showCommitId() {
       try {
-        const list = await getCommits();
-        const c = list && list[0];
+        const c = await getHead();
         if (!c || !c.sha) return;
         const a = $('commit-id');
         a.textContent = c.sha.slice(0, 7);
-        a.href = safeUrl(c.html_url) || ('https://github.com/' + REPO);
-        a.title = (c.commit.message || '').split('\n')[0];
+        a.href = safeUrl(c.url) || ('https://github.com/' + REPO);
+        a.title = c.msg;
         a.hidden = false;
       } catch (e) {}
     }
 
-    function aboutImage(p) {
+    // ============ 「私について」「好きなこと」共通の表示 ============
+    // paragraphs（段落の配列）か text（空行で段落が分かれる）。
+    // 段落は文字列、{ heading, text }、{ image, alt, width, link, caption } のどれか
+    function richImage(p) {
       const src = safeUrl(p.image);
       if (!src) return '';
       const w = Number(p.width);
-      const img = `<img src="${esc(src)}" alt="${esc(p.alt || '')}" loading="lazy"${w > 0 ? ` style="max-width:min(100%, ${Math.round(w)}px)"` : ''}>`;
-      const inner = p.link && safeUrl(p.link) ? `<a href="${hrefOf(p.link)}" target="_blank" rel="noopener">${img}</a>` : img;
+      const img = `<img src="${esc(src)}" alt="${esc(p.alt || '')}" loading="lazy" decoding="async"${w > 0 ? ` style="max-width:min(100%, ${Math.round(w)}px)"` : ''}>`;
+      const inner = p.link && safeUrl(p.link) ? `<a ${linkAttrs(p.link)}>${img}</a>` : img;
       return `<figure>${inner}${p.caption ? `<figcaption>${esc(p.caption)}</figcaption>` : ''}</figure>`;
     }
+    function renderRich(el, a) {
+      if (Array.isArray(a)) a = { paragraphs: a };
+      const paras = (a.paragraphs || (a.text ? String(a.text).split(/\n{2,}/) : [])).filter(Boolean);
+      const body = paras.map(p => {
+        if (typeof p === 'string') return `<p>${p}</p>`;
+        if (p.image) return richImage(p);
+        return `${p.heading ? `<h3>${esc(p.heading)}</h3>` : ''}<p>${p.text ?? ''}</p>`;
+      }).join('');
+      el.innerHTML = `<div class="about-text">${body}</div>` +
+        ((a.skills || []).length ? `<div class="skills">${a.skills.map(esc).join(' / ')}</div>` : '');
+    }
 
+    // ============ データ読み込み ============
     fetch('data.json')
       .then(r => r.json())
       .then(d => {
         if (d.heroTitles && d.heroTitles.length) {
           $('tagline').textContent = d.heroTitles[Math.floor(Math.random() * d.heroTitles.length)];
         }
+        if (d.about) renderRich($('about-container'), d.about);
 
-        if (d.about) {
-          const a = d.about;
-          const paras = a.paragraphs || (a.text ? String(a.text).split(/\n{2,}/) : []);
-          const body = paras.map(p => {
-            if (typeof p === 'string') return `<p>${p}</p>`;
-            if (p.image) return aboutImage(p);
-            return `${p.heading ? `<h3>${esc(p.heading)}</h3>` : ''}<p>${p.text ?? ''}</p>`;
-          }).join('');
-          $('about-container').innerHTML =
-            `<div class="about-text">${body}</div>` +
-            ((a.skills || []).length ? `<div class="skills">${a.skills.map(esc).join(' / ')}</div>` : '');
+        // 好きなこと：data.json に "likes" があるときだけ表示される（形は "about" と同じ）
+        if (d.likes) {
+          renderRich($('likes-container'), d.likes);
+          navBtns.find(b => b.dataset.target === 'likes').hidden = false;
         }
 
         works = d.works || [];
         renderWorks();
+
         const links = (d.relatedLinks || []).map(l =>
-          `<a class="link-row" href="${hrefOf(l.url)}" target="_blank" rel="noopener"><span>${esc(l.title)}</span><span class="material-symbols-outlined">${esc(l.icon || 'arrow_outward')}</span></a>`);
-        links.push(`<a class="link-row" href="${FORM_URL}" target="_blank" rel="noopener"><span>お問い合わせ</span><span class="material-symbols-outlined">mail</span></a>`);
+          `<a class="link-row" ${linkAttrs(l.url)}><span>${esc(l.title)}</span>${icon(l.icon)}</a>`);
+        links.push(`<a class="link-row" ${linkAttrs(FORM_URL)}><span>お問い合わせ</span>${icon('mail')}</a>`);
         $('links-list').innerHTML = links.join('');
+
+        applyHash(); // #likes のように、data.json が読めてから決まるセクションもここで開く
       })
       .catch(() => console.log('data.json not found'));
 
     renderWorks();
-    showCommitId();
-    const h = location.hash.replace('#', '');
-    if (SECTIONS.includes(h)) show(h, false);
+    applyHash();
+    // 本文の表示を邪魔しないよう、ブラウザが暇になってから取得する
+    (window.requestIdleCallback || (f => setTimeout(f, 500)))(showCommitId);
   </script>
 </body>
 </html>
