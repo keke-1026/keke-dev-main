@@ -66,7 +66,7 @@
     {
       "title": "i-Filter 規制画面",
       "description": "タイトルの通りです｡i-Filterの規制画面を再現しました｡(持ってきただけ)",
-      "link": "8080block.html"
+      "link": "8080block/8080block.html"
     },
     {
       "title": "boxblox",
@@ -101,6 +101,14 @@
     {
       "title": "GitHub",
       "url": "to-url.html?url=github.com/keke-1026/keke-dev-main"
+    },
+    {
+      "title": "note",
+      "url": "to-url.html?url=note.com/keke_1026"
+    },
+    {
+      "title": "booth",
+      "url": "to-url.html?url=ke2.booth.pm"
     }
   ]
 }

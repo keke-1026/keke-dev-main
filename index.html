@@ -6,10 +6,9 @@
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#121212">
   <title>keke-dev.net</title>
-  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="icon" href="assets/images/favicon.png" type="image/png">
 
-  <!-- data.json はページの表示に必須なので、HTMLの解析中から先に取りに行く -->
-  <link rel="preload" href="data.json" as="fetch" crossorigin>
+  <link rel="preload" href="assets/data/data.json" as="fetch" crossorigin>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,7 +44,6 @@
     }
     a { color: inherit; }
     button { font-family: inherit; font-weight: inherit; color: inherit; outline: none; }
-    /* マウスでは枠を出さず、キーボード操作のときだけフォーカス位置を見せる */
     :focus-visible { outline: 1px solid rgba(255, 255, 255, 0.55); outline-offset: 3px; border-radius: 3px; }
 
     .ico { width: 18px; height: 18px; fill: currentColor; vertical-align: middle; flex: none; }
@@ -156,7 +154,6 @@
   </style>
 </head>
 <body>
-  <!-- アイコン（外部フォントの代わりに最小限のSVGだけ持つ） -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
     <symbol id="i-arrow_outward" viewBox="0 0 24 24"><path d="M9 5v2h6.59L4 18.59 5.41 20 17 8.41V15h2V5z"/></symbol>
     <symbol id="i-arrow_forward" viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></symbol>
@@ -221,7 +218,7 @@
     </div>
   </div>
 
-  <script src="selfxss.js"></script>
+  <script src="assets/data/selfxss.js"></script>
   <script>
     const $ = id => document.getElementById(id);
     const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -229,22 +226,17 @@
     const REPO = 'keke-1026/keke-dev-main';
     const FORM_URL = 'mailto:keikeiy1026@gmail.com';
 
-    // http / https / mailto と相対パスだけを許可（javascript: などは弾く）
     const safeUrl = x => {
       try { const p = new URL(x, location.href); return /^(https?:|mailto:)$/.test(p.protocol) ? p.href : null; }
       catch (e) { return null; }
     };
-    // リンクの属性。mailto 以外は新しいタブで開く（mailto に target を付けると空のタブが残ることがある）
     const linkAttrs = x => {
       const u = safeUrl(x);
       return `href="${esc(u || '#')}"${u && !u.startsWith('mailto:') ? ' target="_blank" rel="noopener"' : ''}`;
     };
-    // data.json の "icon" に使える名前。それ以外は arrow_outward になる
     const ICONS = new Set(['arrow_outward', 'open_in_new', 'mail', 'arrow_forward']);
     const icon = name => `<svg class="ico" aria-hidden="true"><use href="#i-${ICONS.has(name) ? name : 'arrow_outward'}"/></svg>`;
 
-    // ============ パネル切り替え ============
-    // 切り替え先は HTML のボタン（data-target）から自動で決まる。hidden のボタンは対象外
     const navBtns = [...document.querySelectorAll('.nav-btn')];
     const panels = new Map([...document.querySelectorAll('.panel')].map(p => [p.id.slice(6), p]));
     const sectionList = () => navBtns.filter(b => !b.hidden).map(b => b.dataset.target);
@@ -257,7 +249,6 @@
     const applyHash = () => { const h = location.hash.slice(1); if (sectionList().includes(h)) show(h, false); };
     navBtns.forEach(b => b.addEventListener('click', () => show(b.dataset.target)));
 
-    // ============ 制作物（ページ送り） ============
     let works = [], page = 0;
     const mqMobile = window.matchMedia('(max-width: 700px)');
     const perPage = () => mqMobile.matches ? 2 : 4;
@@ -285,8 +276,6 @@
     $('next').addEventListener('click', () => turn(1));
     mqMobile.addEventListener('change', renderWorks);
 
-    // ============ フッターの最新コミットID ============
-    // 最新の1件だけ取得し、10分間は localStorage に保存して再利用（GitHub API の回数制限対策）
     async function getHead() {
       const KEY = 'gh_head:' + REPO;
       try {
@@ -312,9 +301,6 @@
       } catch (e) {}
     }
 
-    // ============ 「私について」「好きなこと」共通の表示 ============
-    // paragraphs（段落の配列）か text（空行で段落が分かれる）。
-    // 段落は文字列、{ heading, text }、{ image, alt, width, link, caption } のどれか
     function richImage(p) {
       const src = safeUrl(p.image);
       if (!src) return '';
@@ -335,16 +321,14 @@
         ((a.skills || []).length ? `<div class="skills">${a.skills.map(esc).join(' / ')}</div>` : '');
     }
 
-    // ============ データ読み込み ============
-    fetch('data.json')
+    fetch('assets/data/data.json')
       .then(r => r.json())
       .then(d => {
         if (d.heroTitles && d.heroTitles.length) {
           $('tagline').textContent = d.heroTitles[Math.floor(Math.random() * d.heroTitles.length)];
         }
         if (d.about) renderRich($('about-container'), d.about);
-
-        // 好きなこと：data.json に "likes" があるときだけ表示される（形は "about" と同じ）
+        
         if (d.likes) {
           renderRich($('likes-container'), d.likes);
           navBtns.find(b => b.dataset.target === 'likes').hidden = false;
@@ -358,13 +342,12 @@
         links.push(`<a class="link-row" ${linkAttrs(FORM_URL)}><span>お問い合わせ</span>${icon('mail')}</a>`);
         $('links-list').innerHTML = links.join('');
 
-        applyHash(); // #likes のように、data.json が読めてから決まるセクションもここで開く
+        applyHash();
       })
       .catch(() => console.log('data.json not found'));
 
     renderWorks();
     applyHash();
-    // 本文の表示を邪魔しないよう、ブラウザが暇になってから取得する
     (window.requestIdleCallback || (f => setTimeout(f, 500)))(showCommitId);
   </script>
 </body>
