@@ -1,5 +1,4 @@
 {
-  "discordId": "1481594881905262723",
   "heroTitles": [
     "ごく一般的な小学生",
     "学校開門10分前に起きる人",
@@ -55,6 +54,22 @@
       "パソコン → 結構得意 <a href='to-url.html?url=https://youtube.com/channel/UCdd64FlemydZH2Xq1PsmCAA'>やまかわてるき</a>さんの動画めっちゃいい",
       "スマホ → 便利だよね～ 高いけど",
       "まだまだいっぱいあるけど書ききれないからやめとく"
+    ]
+  },
+  "equipment": {
+    "paragraphs": [
+      "使用機材乗せます↓",
+      "----------------------------------------",
+      "PC → ACEMAGICってとこのミニPC",
+      "スマホ → Google Pixel 10a",
+      "他のスマホ → 壊れたiPhone12と音楽再生の4s",
+      "タブレット → 学タブならいちよう｡",
+      "イヤホン → Earpods愛用勢",
+      "マウス → 壊れていまは代用で100均",
+      "キーボード → logicoolのなにか 赤軸",
+      "Raspberry Pi → 4BとPico2 Pico2はパスキーです",
+      "スピーカー → メインはYAMAHAのバカ高いやつ サブはSoundcore2だったはず",
+      "その他 → NFCリーダーRC-S300"
     ]
   },
   "works": [

@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#121212">
   <title>keke-dev.net</title>
@@ -58,7 +58,7 @@
     .stage {
       flex: 1; min-height: 0; position: relative;
       display: grid; grid-template-columns: minmax(240px, 340px) 1fr; gap: 60px;
-      padding: 48px 56px;
+      padding: 48px 56px 28px;
     }
     .side { display: flex; flex-direction: column; min-height: 0; }
     .main { position: relative; min-height: 0; }
@@ -133,6 +133,81 @@
     .link-row:hover { padding-left: 10px; opacity: 0.6; }
     .link-row .ico { opacity: 0.5; }
 
+    .term {
+      --term-x: 56px;
+      position: relative; z-index: 5; flex: none; padding: 0 var(--term-x);
+      border-top: 1px solid var(--line); background: rgba(0, 0, 0, 0.28);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-weight: 400; font-size: 13px; line-height: 1.7;
+      transition: border-color 0.3s;
+    }
+    .term:focus-within { border-top-color: rgba(255, 255, 255, 0.28); }
+    .term-out {
+      position: absolute; left: 0; right: 0; bottom: 100%;
+      max-height: 0; padding: 0 var(--term-x); overflow-y: auto; overscroll-behavior: contain;
+      background: rgba(14, 14, 14, 0.94); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+      scrollbar-width: thin; scrollbar-color: #3a3a3a transparent;
+      visibility: hidden;
+      transition: max-height 0.35s ease, padding 0.35s ease, visibility 0s linear 0.35s;
+    }
+    .term.open .term-out {
+      max-height: min(34vh, 280px); padding: 12px var(--term-x) 4px;
+      box-shadow: 0 -1px 0 var(--line); visibility: visible; transition-delay: 0s;
+    }
+    .term.open .term-out:empty { max-height: 0; padding: 0 var(--term-x); box-shadow: none; }
+    .term .ln { min-height: 1.7em; white-space: pre-wrap; overflow-wrap: anywhere; opacity: 0.88; }
+    .term .ln.cmd { opacity: 1; }
+    .term .ln.cmd .ps { opacity: 0.5; }
+    .term .ln.dim { opacity: 0.45; }
+    .term .ln.err { color: #ff9db5; opacity: 1; }
+    .term .ln .k { color: #9db0ff; }
+    .term .ln a { text-underline-offset: 3px; }
+    .term .ln a:hover { opacity: 0.6; }
+    .term-form { display: flex; align-items: center; gap: 8px; margin: 0; padding: 6px 0 8px; }
+    .term-ps { flex: none; white-space: nowrap; }
+    .term-ps .u { opacity: 0.55; }
+    .term-ps .p { color: #9db0ff; }
+    .term-in {
+      flex: 1; min-width: 0; padding: 4px 0; background: none; border: none; border-radius: 0;
+      color: var(--text); font: inherit; caret-color: var(--text);
+    }
+    .term-in::placeholder { color: var(--text); opacity: 0.3; }
+    .term-in:focus-visible { outline: none; }
+    .term-toggle .ico { transition: transform 0.3s; }
+    .term.open .term-toggle .ico { transform: rotate(180deg); }
+
+    body.wiped .stage, body.wiped .keepandroidopen {
+      opacity: 0; visibility: hidden; transition: opacity 0.6s ease, visibility 0s linear 0.6s;
+    }
+    body.wiped::before { opacity: 0; transition: opacity 0.6s ease; }
+    body.wiped .term-toggle { visibility: hidden; }
+
+    .nano {
+      --nano-x: 24px;
+      position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column;
+      background: #0e0e0e; color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-weight: 400; font-size: 13px; line-height: 1.6;
+    }
+    .nano[hidden], .nano [hidden] { display: none !important; }
+    .nano-head, .nano-keys {
+      flex: none; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 22px;
+      padding: 2px var(--nano-x); background: #eee; color: #121212;
+    }
+    .nano-head { justify-content: space-between; }
+    .nano-keys button { background: none; border: none; padding: 2px 0; color: inherit; font: inherit; cursor: pointer; }
+    .nano-keys button:focus-visible { outline-color: #121212; }
+    .nano-keys b { font-weight: 400; background: #121212; color: #eee; padding: 0 5px; margin-right: 6px; }
+    .nano-text {
+      flex: 1; min-height: 0; width: 100%; resize: none; border: none; border-radius: 0; outline: none;
+      background: transparent; color: inherit; font: inherit; padding: 12px var(--nano-x);
+      white-space: pre; overflow: auto; tab-size: 2; caret-color: var(--text);
+    }
+    .nano-text:focus-visible { outline: none; }
+    .nano-text[readonly] { opacity: 0.6; }
+    .nano-status { flex: none; min-height: 1.6em; padding: 0 var(--nano-x); text-align: center; opacity: 0.8; }
+    .nano-status.err { color: #ff9db5; opacity: 1; }
+
     @media (max-width: 700px) {
       .stage { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr auto; gap: 0; padding: 22px 22px 16px; }
       .side { display: contents; }
@@ -147,9 +222,15 @@
       .works-grid { grid-template-columns: 1fr; gap: 22px; }
       .work .name { font-size: 18px; }
       .about-text { font-size: 15px; }
+      .term { --term-x: 22px; font-size: 12px; }
+      .term.open .term-out { max-height: min(30vh, 220px); }
+      .term-in { font-size: 16px; }
+      .term-ps .u { display: none; }
+      .nano { --nano-x: 16px; }
+      .nano-text { font-size: 16px; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .panel, .nav-btn, .work { transition: none; animation: none; }
+      .panel, .nav-btn, .work, .term, .term-out, .term-toggle .ico { transition: none; animation: none; }
     }
   </style>
 </head>
@@ -161,6 +242,7 @@
     <symbol id="i-chevron_right" viewBox="0 0 24 24"><path d="M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></symbol>
     <symbol id="i-mail" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/></symbol>
     <symbol id="i-open_in_new" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></symbol>
+    <symbol id="i-expand_less" viewBox="0 0 24 24"><path d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"/></symbol>
   </svg>
 
   <div class="keepandroidopen">
@@ -179,6 +261,7 @@
         <button class="nav-btn" data-target="works">制作物</button>
         <button class="nav-btn" data-target="links">リンク</button>
         <button class="nav-btn" data-target="likes" hidden>好きなこと</button>
+        <button class="nav-btn" data-target="equipment">使用機材</button>
       </nav>
 
       <div class="side-bottom">
@@ -215,6 +298,36 @@
         <div class="label">好きなこと</div>
         <div id="likes-container"></div>
       </section>
+
+      <section class="panel" id="panel-equipment">
+        <div class="label">使用機材</div>
+        <div id="equipment-container"></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="term" id="term" aria-label="ターミナル">
+    <div class="term-out" id="term-out" role="log" aria-label="ターミナルの出力"></div>
+    <form class="term-form" id="term-form" autocomplete="off">
+      <label class="term-ps" id="term-ps" for="term-in"><span class="u">user@keke-dev:</span><span class="p">~</span>$</label>
+      <input class="term-in" id="term-in" type="text" placeholder="help と入力してみてね" aria-label="コマンド入力"
+             autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send">
+      <button class="icon-btn term-toggle" id="term-toggle" type="button" aria-label="ターミナルを開く" aria-expanded="false" aria-controls="term-out"><svg class="ico"><use href="#i-expand_less"/></svg></button>
+    </form>
+  </section>
+
+  <div class="nano" id="nano" role="dialog" aria-modal="true" aria-label="nano" hidden>
+    <div class="nano-head"><span>GNU nano</span><span>terminal.json</span><span id="nano-mod"></span></div>
+    <textarea class="nano-text" id="nano-text" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" wrap="off" aria-label="terminal.json の編集"></textarea>
+    <div class="nano-status" id="nano-status" role="status"></div>
+    <div class="nano-keys" id="nano-keys">
+      <button type="button" data-k="o"><b>^O</b>保存</button>
+      <button type="button" data-k="x"><b>^X</b>終了</button>
+    </div>
+    <div class="nano-keys" id="nano-confirm" hidden>
+      <button type="button" data-k="y"><b>Y</b>保存して終了</button>
+      <button type="button" data-k="n"><b>N</b>保存せず終了</button>
+      <button type="button" data-k="c"><b>Esc</b>戻る</button>
     </div>
   </div>
 
@@ -245,11 +358,12 @@
       panels.forEach((p, k) => p.classList.toggle('active', k === name));
       navBtns.forEach(b => b.classList.toggle('active', b.dataset.target === name));
       if (pushHash) { try { history.replaceState(null, '', '#' + name); } catch (e) {} }
+      document.dispatchEvent(new CustomEvent('sectionchange', { detail: name }));
     }
     const applyHash = () => { const h = location.hash.slice(1); if (sectionList().includes(h)) show(h, false); };
     navBtns.forEach(b => b.addEventListener('click', () => show(b.dataset.target)));
 
-    let works = [], page = 0;
+    let works = [], page = 0, siteData = {};
     const mqMobile = window.matchMedia('(max-width: 700px)');
     const perPage = () => mqMobile.matches ? 2 : 4;
     function renderWorks() {
@@ -324,6 +438,7 @@
     fetch('assets/data/data.json')
       .then(r => r.json())
       .then(d => {
+        siteData = d;
         if (d.heroTitles && d.heroTitles.length) {
           $('tagline').textContent = d.heroTitles[Math.floor(Math.random() * d.heroTitles.length)];
         }
@@ -333,6 +448,7 @@
           renderRich($('likes-container'), d.likes);
           navBtns.find(b => b.dataset.target === 'likes').hidden = false;
         }
+        if (d.equipment) renderRich($('equipment-container'), d.equipment);
 
         works = d.works || [];
         renderWorks();
@@ -349,6 +465,528 @@
     renderWorks();
     applyHash();
     (window.requestIdleCallback || (f => setTimeout(f, 500)))(showCommitId);
+
+    // ================= ターミナル =================
+    // terminal.json から { "builtin": "名前" } で呼び出す
+    //   commands.<名前> = { desc, usage, hidden, run: [ 命令, ... ] }
+    //     { "print": "文字" or ["文字", ...], "style": "dim"|"err" }
+    //     { "open": "URL", "label": "表示名" }   新しいタブで開く
+    //     { "go": "URL" }                        このタブで移動
+    //     { "set": { "フラグ名": 値 } }          フラグを変える
+    //     { "if": 条件, "then": [...], "else": [...] }
+    //     { "exec": "コマンド行", "with": { "フラグ名": 値 } }   別のコマンドを実行
+    //     { "builtin": "名前" }                  JS 側の部品を呼ぶ
+    //     { "remove": "コマンド名" }             コマンドを消す
+    //     { "clear": true } / { "wipe": true }
+    //   条件: flag(+eq) / has / hasAny / argc / arg(+eq) / args / all / any / not
+    //   文字列の中では $rest(引数ぜんぶ) / $1〜$9(n番目の引数) / $last(最後の引数)
+    //   flags(フラグの初期値)はファイルのいちばん下に書く
+    (() => {
+      const term = $('term'), out = $('term-out'), form = $('term-form');
+      const input = $('term-in'), toggle = $('term-toggle');
+      const psPath = term.querySelector('.term-ps .p');
+      const MAX_LINES = 300, MAX_DEPTH = 8;
+      const NOT_READY = '(まだ読み込めてないよ)';
+      const FILE = 'terminal.json';
+      const STEP_KEYS = ['if', 'print', 'open', 'go', 'set', 'exec', 'builtin', 'remove', 'clear', 'wipe'];
+      const hasOwn = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+      const hist = [];
+      let hIdx = 0, draft = '', welcomed = false, wiped = false, depth = 0;
+      let cfg = { commands: {}, flags: {} }, cfgText = '';
+      let flags = new Map(), registry = new Map();
+
+
+      const cwd = () => { const b = document.querySelector('.nav-btn.active'); return b ? b.dataset.target : 'about'; };
+      const pathOf = d => d === 'about' ? '~' : '~/' + d;
+      const syncPrompt = () => { psPath.textContent = pathOf(cwd()); };
+      const resolve = a => {
+        const s = String(a).trim().toLowerCase().replace(/^~\/?/, '').replace(/^\.\//, '').replace(/\/+$/, '');
+        return (s === '' || s === '..') ? 'about' : s === '.' ? cwd() : s;
+      };
+
+      function line(text = '', cls = '') {
+        const d = document.createElement('div');
+        if (wiped) return d;
+        d.className = 'ln' + (cls ? ' ' + cls : '');
+        d.textContent = text;
+        out.appendChild(d);
+        while (out.childElementCount > MAX_LINES) out.firstElementChild.remove();
+        out.scrollTop = out.scrollHeight;
+        return d;
+      }
+      const err = t => line(t, 'err');
+      const dim = t => line(t, 'dim');
+      function anchor(label, href) {
+        const a = document.createElement('a');
+        a.textContent = label;
+        const u = safeUrl(href);
+        if (u) { a.href = u; if (!u.startsWith('mailto:')) { a.target = '_blank'; a.rel = 'noopener'; } }
+        return a;
+      }
+      function kv(k, v) {
+        const d = line();
+        const ks = document.createElement('span');
+        ks.className = 'k'; ks.textContent = k.padEnd(8);
+        d.append(ks, v);
+      }
+      function echo(text) {
+        const d = line('', 'cmd');
+        const ps = document.createElement('span');
+        ps.className = 'ps'; ps.textContent = `keke@keke-dev:${pathOf(cwd())}$ `;
+        d.append(ps, document.createTextNode(text));
+      }
+
+      const isOpen = () => term.classList.contains('open');
+      function setOpen(v) {
+        if (wiped) return;
+        term.classList.toggle('open', v);
+        toggle.setAttribute('aria-expanded', String(v));
+        toggle.setAttribute('aria-label', v ? 'ターミナルを閉じる' : 'ターミナルを開く');
+        if (v && !welcomed) {
+          welcomed = true;
+          line('user@keke-dev');
+          dim('help でコマンド一覧');
+        }
+        if (v) out.scrollTop = out.scrollHeight;
+      }
+
+      const stripHtml = h => { const t = document.createElement('template'); t.innerHTML = String(h ?? ''); return t.content.textContent; };
+      const allLinks = () => [
+        ...(siteData.relatedLinks || []).map(l => ({ title: l.title, url: l.url })),
+        { title: 'お問い合わせ', key: 'contact', url: FORM_URL }
+      ];
+      function richLines(a) {
+        if (!a) return null;
+        if (Array.isArray(a)) a = { paragraphs: a };
+        const paras = (a.paragraphs || (a.text ? String(a.text).split(/\n{2,}/) : [])).filter(Boolean);
+        const ls = [];
+        paras.forEach(p => {
+          if (typeof p === 'string') ls.push(stripHtml(p));
+          else if (p.image) ls.push(`[画像: ${p.alt || p.caption || p.image}]`);
+          else { if (p.heading) ls.push(`## ${p.heading}`); ls.push(stripHtml(p.text)); }
+        });
+        if ((a.skills || []).length) ls.push('', 'skills: ' + a.skills.join(' / '));
+        return ls;
+      }
+      function listWorks(detail) {
+        if (!works.length) return dim(NOT_READY);
+        works.forEach((w, i) => {
+          line(`${String(i + 1).padStart(2)}  ${w.title}`);
+          if (detail && w.description) dim('    ' + w.description);
+        });
+        dim('open <番号> で開けるよ');
+      }
+      function listLinks() {
+        if (!siteData.relatedLinks) dim(NOT_READY);
+        allLinks().forEach(l => { const d = line('  '); d.appendChild(anchor(l.title, l.url)); });
+        dim('open <名前> でも開けるよ');
+      }
+      function openUrl(title, url) {
+        const u = safeUrl(url);
+        if (!u) return err(`open: ${title}: 開けないURLだよ`);
+        const d = line('→ ');
+        d.appendChild(anchor(title, u));
+        const a = anchor(title, u);
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+
+      function wipe() {
+        wiped = true;
+        flags.set('wiped', true);
+        out.textContent = '';
+        term.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+        input.placeholder = '';
+        document.body.classList.add('wiped');
+      }
+
+      function removeCommand(name) {
+        const n = String(name).trim().toLowerCase();
+        const cmds = cfg.commands || {};
+        const k = Object.keys(cmds).find(x => x.toLowerCase() === n);
+        if (!n || k === undefined) return err(`rm: '${name}': そんなコマンドないよ`);
+        delete cmds[k];
+        cfgText = JSON.stringify(cfg, null, 2) + '\n';
+        rebuild();
+      }
+
+      const isObj = v => !!v && typeof v === 'object' && !Array.isArray(v);
+      function checkSteps(steps, where) {
+        if (!Array.isArray(steps)) return `${where} は [ ] にしてね`;
+        for (let i = 0; i < steps.length; i++) {
+          const s = steps[i], at = `${where}[${i}]`;
+          if (!isObj(s)) return `${at} は { } にしてね`;
+          const key = STEP_KEYS.find(k => k in s);
+          if (!key) return `${at}: 知らない命令だよ (${STEP_KEYS.join(' / ')})`;
+          if (key === 'if') {
+            for (const b of ['then', 'else']) {
+              if (b in s) { const r = checkSteps(s[b], `${at}.${b}`); if (r) return r; }
+            }
+          }
+          if (['open', 'go', 'exec', 'remove', 'builtin'].includes(key) && typeof s[key] !== 'string') return `${at}.${key} は "文字" にしてね`;
+          if (key === 'builtin' && !hasOwn(BUILTIN, s.builtin)) return `${at}.builtin: "${s.builtin}" という部品はないよ`;
+          if (key === 'print' && typeof s.print !== 'string' && !Array.isArray(s.print)) return `${at}.print は "文字" か [ ] にしてね`;
+          if (key === 'set' && !isObj(s.set)) return `${at}.set は { } にしてね`;
+        }
+        return null;
+      }
+      function validate(o) {
+        if (!isObj(o)) return 'いちばん外側は { } にしてね';
+        if ('commands' in o) {
+          if (!isObj(o.commands)) return '"commands" は { } にしてね';
+          for (const [n, d] of Object.entries(o.commands)) {
+            if (!n || /\s/.test(n)) return `コマンド名 "${n}" に空白は使えないよ`;
+            if (!isObj(d)) return `commands.${n} は { } にしてね`;
+            if ('run' in d) { const r = checkSteps(d.run, `commands.${n}.run`); if (r) return r; }
+          }
+        }
+        if ('flags' in o && !isObj(o.flags)) return '"flags" は { } にしてね';
+        return null;
+      }
+
+      function test(c, ctx) {
+        if (typeof c === 'boolean') return c;
+        if (!isObj(c)) return false;
+        const rs = [];
+        if ('all' in c) rs.push(Array.isArray(c.all) && c.all.every(x => test(x, ctx)));
+        if ('any' in c) rs.push(Array.isArray(c.any) && c.any.some(x => test(x, ctx)));
+        if ('not' in c) rs.push(!test(c.not, ctx));
+        if ('flag' in c) { const v = flags.get(c.flag); rs.push('eq' in c ? v === c.eq : !!v); }
+        if ('has' in c) rs.push(ctx.args.includes(String(c.has)));
+        if ('hasAny' in c) rs.push(Array.isArray(c.hasAny) && c.hasAny.some(a => ctx.args.includes(String(a))));
+        if ('argc' in c) rs.push(ctx.args.length === c.argc);
+        if ('arg' in c) rs.push(ctx.args[Number(c.arg) - 1] === c.eq);
+        if ('args' in c) rs.push(Array.isArray(c.args) && c.args.length === ctx.args.length && c.args.every((a, i) => ctx.args[i] === String(a)));
+        return rs.length > 0 && rs.every(Boolean);
+      }
+
+      async function runSteps(steps, ctx) {
+        if (!Array.isArray(steps)) return;
+        const sub = s => String(s).replace(/\$(rest|last|[1-9])/g, (m, k) =>
+          k === 'rest' ? ctx.raw : k === 'last' ? (ctx.args[ctx.args.length - 1] ?? '') : (ctx.args[Number(k) - 1] ?? ''));
+        for (const st of steps) {
+          if (wiped || !isObj(st)) return;
+          const key = STEP_KEYS.find(k => k in st);
+          if (key === 'if') await runSteps(test(st.if, ctx) ? st.then : st.else, ctx);
+          else if (key === 'print') {
+            const cls = st.style === 'err' ? 'err' : st.style === 'dim' ? 'dim' : '';
+            [].concat(st.print).forEach(t => line(sub(t), cls));
+          } else if (key === 'open') openUrl(st.label ? sub(st.label) : sub(st.open), sub(st.open));
+          else if (key === 'go') { const u = safeUrl(sub(st.go)); if (u) location.assign(u); else err('go: 開けないURLだよ'); }
+          else if (key === 'set') {
+            for (const [k, v] of Object.entries(st.set)) {
+              if (v === null || ['boolean', 'number', 'string'].includes(typeof v)) flags.set(k, v);
+            }
+          } else if (key === 'exec') await execLine(sub(st.exec), st.with);
+          else if (key === 'builtin') { if (hasOwn(BUILTIN, st.builtin)) await BUILTIN[st.builtin].run(ctx.args, ctx.raw); }
+          else if (key === 'remove') removeCommand(sub(st.remove));
+          else if (key === 'clear') out.textContent = '';
+          else if (key === 'wipe') wipe();
+        }
+      }
+      async function execLine(text, withFlags) {
+        const t = String(text).trim();
+        if (!t || wiped) return;
+        if (depth >= MAX_DEPTH) return err('exec: 入れ子が深すぎるよ');
+        const parts = t.split(/\s+/), name = parts[0].toLowerCase();
+        const cmd = registry.get(name);
+        if (!cmd) { err(`bash: ${parts[0]}: command not found`); dim('help でコマンド一覧が見られるよ'); return; }
+        const prev = new Map();
+        if (isObj(withFlags)) for (const [k, v] of Object.entries(withFlags)) { prev.set(k, flags.get(k)); flags.set(k, v); }
+        depth++;
+        try { await cmd.run(parts.slice(1), t.slice(parts[0].length).trim()); }
+        catch (e) { err(`${name}: エラーが出ちゃった`); }
+        finally {
+          depth--;
+          prev.forEach((v, k) => { if (v === undefined) flags.delete(k); else flags.set(k, v); });
+        }
+      }
+
+      const BUILTIN = {
+        help: { usage: 'help', desc: 'このコマンド一覧', run() {
+          line('使えるコマンド:');
+          registry.forEach((c, n) => { if (!c.hidden) line('  ' + (c.usage || n).padEnd(16) + (c.desc || '')); });
+        } },
+        ls: { usage: 'ls [dir]', desc: 'セクションや中身の一覧', run([a]) {
+          const t = a === undefined ? cwd() : resolve(a);
+          if (t === FILE) return line(FILE);
+          if (t === 'about') return line([...sectionList().map(s => s + '/'), FILE].join('  '));
+          if (!sectionList().includes(t)) return err(`ls: '${a}' を開けません: そんなディレクトリねえよ`);
+          if (t === 'works') return listWorks(false);
+          if (t === 'links') return listLinks();
+          dim(`${t} は文章だよ。cat ${t} で読めるよ`);
+        } },
+        cd: { usage: 'cd <dir>', desc: 'セクションを切り替える', run([a]) {
+          const t = a === undefined ? 'about' : resolve(a);
+          if (!sectionList().includes(t)) return err(`cd: ${a}: そんなディレクトリねえよ`);
+          show(t);
+        } },
+        cat: { usage: 'cat [dir|file]', desc: 'セクションやファイルの中身を出す', run([a]) {
+          const t = a === undefined ? cwd() : resolve(a);
+          if (t === FILE) return cfgText.replace(/\n$/, '').split('\n').forEach(l => line(l));
+          if (!sectionList().includes(t)) return err(`cat: ${a}: そんなファイルねえよ`);
+          if (t === 'works') return listWorks(true);
+          if (t === 'links') return listLinks();
+          const ls = richLines(siteData[t]);
+          if (!ls) return dim(NOT_READY);
+          ls.forEach(l => line(l));
+        } },
+        open: { usage: 'open <n|name>', desc: 'works の番号 / リンク名を新しいタブで開く', run(args) {
+          const q = args.join(' ').trim().toLowerCase();
+          if (!q) return err('open: 何を開く？');
+          let hit = null;
+          if (/^\d+$/.test(q)) {
+            const w = works[Number(q) - 1];
+            if (w) hit = { title: w.title, url: w.link };
+          } else {
+            const cands = [...allLinks(), ...works.map(w => ({ title: w.title, url: w.link }))];
+            const exact = c => [c.key, c.title].some(n => n && n.toLowerCase() === q);
+            const prefix = c => [c.key, c.title].some(n => n && n.toLowerCase().startsWith(q));
+            hit = cands.find(exact) || cands.find(prefix) || null;
+          }
+          if (!hit) return err(`open: ${q}: 見つからないよ`);
+          openUrl(hit.title, hit.url);
+        } },
+        nano: { usage: 'nano [file]', desc: 'terminal.json を編集', run([a]) {
+          const t = a === undefined ? FILE : resolve(a);
+          if (t !== FILE) return err(`nano: ${a}: 編集できるのは ${FILE} だけだよ`);
+          nanoOpen();
+        } },
+        pwd: { usage: 'pwd', desc: '今いる場所', run() { const c = cwd(); line('/home/keke' + (c === 'about' ? '' : '/' + c)); } },
+        date: { usage: 'date', desc: '今の日時', run() {
+          line(new Date().toLocaleString('ja-JP', { dateStyle: 'full', timeStyle: 'medium' }));
+        } },
+        echo: { usage: 'echo <text>', desc: '文字をそのまま出す', run(args, raw) { line(raw); } },
+        fortune: { usage: 'fortune', desc: 'ランダムなひとこと', run() {
+          const t = siteData.heroTitles;
+          if (!t || !t.length) return dim(NOT_READY);
+          line(t[Math.floor(Math.random() * t.length)]);
+        } },
+        neofetch: { usage: 'neofetch', desc: 'このサイトと環境の情報', async run() {
+          let commit = '-';
+          try { const c = await getHead(); if (c && c.sha) commit = c.sha.slice(0, 7); } catch (e) {}
+          line('user@keke-dev');
+          line('-------------');
+          kv('site', location.host || 'keke-dev.net');
+          kv('works', String(works.length));
+          kv('screen', `${screen.width}x${screen.height}`);
+          kv('lang', navigator.language || '-');
+          kv('commit', commit);
+        } },
+        history: { usage: 'history', desc: '今まで打ったコマンド', run() {
+          if (!hist.length) return dim('(まだ何も打ってないよ)');
+          hist.forEach((h, i) => line(`${String(i + 1).padStart(3)}  ${h}`));
+        } },
+        clear: { usage: 'clear', desc: '画面をきれいにする', run() { out.textContent = ''; } },
+        exit: { usage: 'exit', desc: 'ターミナルを閉じる', run() { setOpen(false); input.blur(); } },
+      };
+
+      function rebuild() {
+        registry = new Map();
+        for (const [n, d] of Object.entries(cfg.commands || {})) {
+          registry.set(n.toLowerCase(), {
+            usage: d.usage || n, desc: d.desc || '', hidden: !!d.hidden,
+            run: (args, raw) => runSteps(d.run, { args, raw })
+          });
+        }
+      }
+      function applyConfig(obj, text) {
+        cfg = obj; cfgText = text;
+        flags = new Map(Object.entries(obj.flags || {}));
+        rebuild();
+      }
+      function useDefault() {
+        const commands = {};
+        for (const [n, c] of Object.entries(BUILTIN)) commands[n] = { usage: c.usage, desc: c.desc, run: [{ builtin: n }] };
+        const obj = { commands, flags: {} };
+        applyConfig(obj, JSON.stringify(obj, null, 2) + '\n');
+      }
+      async function loadConfig() {
+        for (const url of ['assets/data/terminal.json', FILE]) {
+          try {
+            const r = await fetch(url);
+            if (!r.ok) continue;
+            const text = await r.text();
+            const obj = JSON.parse(text);
+            const bad = validate(obj);
+            if (bad) { console.warn(FILE + ': ' + bad); return; }
+            applyConfig(obj, text);
+            return;
+          } catch (e) {  }
+        }
+        console.log(FILE + ' not found');
+      }
+
+      const nano = { el: $('nano'), ta: $('nano-text'), st: $('nano-status'), open: false, confirming: false };
+      const lockEls = [document.querySelector('.keepandroidopen'), document.querySelector('.stage'), term].filter(Boolean);
+      const nanoSay = (msg, cls = '') => { nano.st.textContent = msg; nano.st.className = 'nano-status' + (cls ? ' ' + cls : ''); };
+      const nanoMod = () => { $('nano-mod').textContent = nano.ta.value !== cfgText ? '変更あり' : ''; };
+      function nanoConfirm(on) {
+        nano.confirming = on;
+        nano.ta.readOnly = on;
+        $('nano-keys').hidden = on;
+        $('nano-confirm').hidden = !on;
+      }
+      function nanoOpen() {
+        nano.ta.value = cfgText;
+        nano.el.hidden = false;
+        nano.open = true;
+        nanoConfirm(false);
+        nanoSay('');
+        nanoMod();
+        lockEls.forEach(e => { e.inert = true; });
+        nano.ta.focus();
+        nano.ta.setSelectionRange(0, 0);
+        nano.ta.scrollTop = 0;
+      }
+      function nanoClose() {
+        nanoConfirm(false);
+        nano.el.hidden = true;
+        nano.open = false;
+        lockEls.forEach(e => { e.inert = false; });
+        if (window.matchMedia('(hover: hover)').matches) input.focus();
+      }
+      function nanoSave() {
+        const text = nano.ta.value;
+        let obj;
+        try { obj = JSON.parse(text); }
+        catch (e) { nanoSay('JSON エラー: ' + e.message, 'err'); return false; }
+        const bad = validate(obj);
+        if (bad) { nanoSay('エラー: ' + bad, 'err'); return false; }
+        applyConfig(obj, text);
+        nanoSay(`[ ${FILE} に書き込みました (コマンド ${Object.keys(obj.commands || {}).length} 個) ]`);
+        nanoMod();
+        return true;
+      }
+      function nanoExit() {
+        if (nano.ta.value === cfgText) return nanoClose();
+        nanoConfirm(true);
+        nanoSay('変更を保存する？  Y: 保存して終了 / N: 保存せず終了 / Esc: 戻る');
+      }
+      function nanoAnswer(k) {
+        if (k === 'y') { if (nanoSave()) nanoClose(); else nanoConfirm(false); }
+        else if (k === 'n') nanoClose();
+        else { nanoConfirm(false); nanoSay(''); nano.ta.focus(); }
+      }
+      nano.el.addEventListener('keydown', e => {
+        if (e.isComposing) return;
+        const k = e.key.toLowerCase();
+        if (nano.confirming) {
+          e.preventDefault();
+          nanoAnswer(k === 'y' || k === 'n' ? k : (k === 'escape' || (e.ctrlKey && k === 'c')) ? 'c' : '');
+          return;
+        }
+        if (e.ctrlKey && !e.altKey && !e.metaKey) {
+          if (k === 'o' || k === 's') { e.preventDefault(); nanoSave(); }
+          else if (k === 'x') { e.preventDefault(); nanoExit(); }
+        } else if (e.key === 'Tab' && !e.shiftKey && e.target === nano.ta) {
+          e.preventDefault();
+          if (!document.execCommand('insertText', false, '  ')) {
+            nano.ta.setRangeText('  ', nano.ta.selectionStart, nano.ta.selectionEnd, 'end');
+            nanoMod();
+          }
+        }
+      });
+      nano.ta.addEventListener('input', nanoMod);
+      nano.el.addEventListener('click', e => {
+        const b = e.target.closest('button[data-k]');
+        if (!b) return;
+        const k = b.dataset.k;
+        if (k === 'o') nanoSave();
+        else if (k === 'x') nanoExit();
+        else nanoAnswer(k);
+      });
+
+      function complete() {
+        const v = input.value;
+        if (input.selectionStart !== v.length) return;
+        const parts = v.split(/\s+/), idx = parts.length - 1, word = parts[idx].toLowerCase();
+        let cands = [];
+        if (idx === 0) cands = [...registry].filter(([, c]) => !c.hidden).map(([n]) => n);
+        else if (idx === 1) {
+          const c = parts[0].toLowerCase();
+          if (c === 'cd') cands = sectionList();
+          else if (c === 'ls' || c === 'cat') cands = [...sectionList(), FILE];
+          else if (c === 'nano') cands = [FILE];
+          else if (c === 'open') cands = allLinks().map(l => (l.key || l.title).toLowerCase()).filter(t => !/\s/.test(t));
+        }
+        const hits = cands.filter(c => c.startsWith(word));
+        if (!hits.length) return;
+        if (hits.length === 1) {
+          parts[idx] = hits[0];
+          input.value = parts.join(' ') + (idx === 0 ? ' ' : '');
+          return;
+        }
+        const lcp = hits.reduce((a, b) => { let i = 0; while (i < a.length && a[i] === b[i]) i++; return a.slice(0, i); });
+        if (lcp.length > word.length) { parts[idx] = lcp; input.value = parts.join(' '); }
+        else { setOpen(true); echo(v); dim(hits.join('  ')); }
+      }
+
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const text = input.value.trim();
+        input.value = '';
+        draft = '';
+        if (wiped) return;
+        if (!text) { hIdx = hist.length; if (isOpen()) echo(''); return; }
+        if (hist[hist.length - 1] !== text) hist.push(text);
+        hIdx = hist.length;
+        setOpen(true);
+        echo(text);
+        await execLine(text);
+      });
+
+      input.addEventListener('keydown', e => {
+        if (e.isComposing || wiped) return;
+        if (e.key === 'ArrowUp') {
+          if (!hist.length) return;
+          e.preventDefault();
+          if (hIdx === hist.length) draft = input.value;
+          hIdx = Math.max(0, hIdx - 1);
+          input.value = hist[hIdx];
+        } else if (e.key === 'ArrowDown') {
+          if (hIdx >= hist.length) return;
+          e.preventDefault();
+          hIdx += 1;
+          input.value = hIdx === hist.length ? draft : hist[hIdx];
+        } else if (e.key === 'Tab') {
+          e.preventDefault();
+          complete();
+        } else if (e.ctrlKey && e.key.toLowerCase() === 'l') {
+          e.preventDefault();
+          out.textContent = '';
+        } else if (e.ctrlKey && e.key.toLowerCase() === 'c' && input.selectionStart === input.selectionEnd) {
+          e.preventDefault();
+          if (isOpen()) echo(input.value + '^C');
+          input.value = '';
+        } else if (e.key === 'Escape') {
+          input.blur();
+        }
+      });
+
+      toggle.addEventListener('click', () => {
+        setOpen(!isOpen());
+        if (isOpen() && window.matchMedia('(hover: hover)').matches) input.focus();
+      });
+      term.addEventListener('click', e => {
+        if (e.target.closest('a, button') || String(window.getSelection()).length) return;
+        input.focus();
+      });
+      document.addEventListener('keydown', e => {
+        if (nano.open || e.key !== '`' || e.ctrlKey || e.metaKey || e.altKey) return;
+        if (e.target && e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+        e.preventDefault();
+        setOpen(true);
+        input.focus();
+      });
+      document.addEventListener('sectionchange', syncPrompt);
+      useDefault();
+      syncPrompt();
+      loadConfig();
+    })();
   </script>
 </body>
 </html>

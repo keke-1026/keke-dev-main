@@ -1,0 +1,176 @@
+{
+  "commands": {
+    "help": {
+      "usage": "help",
+      "desc": "このコマンド一覧",
+      "run": [{ "builtin": "help" }]
+    },
+    "ls": {
+      "usage": "ls [dir]",
+      "desc": "中身の一覧",
+      "run": [{ "builtin": "ls" }]
+    },
+    "cd": {
+      "usage": "cd <dir>",
+      "desc": "セクションを切り替える",
+      "run": [{ "builtin": "cd" }]
+    },
+    "cat": {
+      "usage": "cat [dir|file]",
+      "desc": "セクションやファイルの中身を出す",
+      "run": [{ "builtin": "cat" }]
+    },
+    "open": {
+      "usage": "open <n or name>",
+      "desc": "works の番号 / リンク名を新しいタブで開く",
+      "run": [{ "builtin": "open" }]
+    },
+    "pwd": {
+      "usage": "pwd",
+      "desc": "今いる場所",
+      "run": [{ "builtin": "pwd" }]
+    },
+    "date": {
+      "usage": "date",
+      "desc": "今の日時",
+      "run": [{ "builtin": "date" }]
+    },
+    "echo": {
+      "usage": "echo <text>",
+      "desc": "文字をそのまま出す",
+      "run": [{ "print": "$rest" }]
+    },
+    "fortune": {
+      "usage": "fortune",
+      "desc": "ランダムなひとこと",
+      "run": [{ "builtin": "fortune" }]
+    },
+    "neofetch": {
+      "usage": "neofetch",
+      "desc": "このサイトと環境の情報",
+      "run": [{ "builtin": "neofetch" }]
+    },
+    "history": {
+      "usage": "history",
+      "desc": "今まで打ったコマンド",
+      "run": [{ "builtin": "history" }]
+    },
+    "clear": {
+      "usage": "clear",
+      "desc": "画面をきれいにする",
+      "run": [{ "clear": true }]
+    },
+    "exit": {
+      "usage": "exit",
+      "desc": "ターミナルを閉じる",
+      "run": [{ "builtin": "exit" }]
+    },
+    "sudo": {
+      "hidden": true,
+      "usage": "sudo <command>",
+      "desc": "管理者として実行する",
+      "run": [
+        {
+          "if": { "argc": 0 },
+          "then": [
+            { "print": "usage: sudo <command>", "style": "err" }
+          ],
+          "else": [
+            { "exec": "$rest", "with": { "sudo": true } }
+          ]
+        }
+      ]
+    },
+    "rm": {
+      "hidden": true,
+      "usage": "rm <command>",
+      "desc": "コマンドを消す",
+      "run": [
+        {
+          "if": { "argc": 0 },
+          "then": [
+            { "print": "rm: missing operand", "style": "err" }
+          ],
+          "else": [
+            {
+              "if": {
+                "all": [
+                  { "hasAny": ["-rf", "-fr"] },
+                  { "hasAny": ["/", "/*"] }
+                ]
+              },
+              "then": [
+                {
+                  "if": { "flag": "sudo" },
+                  "then": [
+                    { "wipe": true }
+                  ],
+                  "else": [
+                    { "print": "rm: '/' を削除できません: Permission denied", "style": "err" }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "if": { "flag": "sudo" },
+                  "then": [
+                    { "remove": "$last" }
+                  ],
+                  "else": [
+                    { "print": "rm: '$last' を削除できません: Permission denied", "style": "err" }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "miku": {
+      "hidden": true,
+      "run": [
+        { "print": "keke-dev.net を見てるみなさーん!! こんにちは～初音ミクでーす!!" }
+      ]
+    },
+    "4c8379fd": {
+      "hidden": true,
+      "run": [
+        { "open": "to-url.html?url=keke-dev.net/primary-ending/index.html?pass=ending", "label": "2026卒業文集" }
+      ]
+    },
+    "neko": {
+      "hidden": true,
+      "run": [
+        { "print": "にゃーん" }
+      ]
+    },
+    "PANDORA PARADOXXX": {
+      "hidden": true,
+      "run": [
+        { "print": "いい曲ですね" }
+      ]
+    },
+    "keke": {
+      "hidden": true,
+      "run": [
+        { "print": "keke-dev.net の管理者です" }
+      ]
+    },
+    "系ぎて": {
+      "hidden": true,
+      "run": [
+        { "print": "神曲クソ譜面" }
+      ]
+    },
+    "huh?": {
+      "hidden": true,
+      "run": [
+        { "print": "死んでらっしゃい｡(?)" }
+      ]
+    }
+  },
+  "flags": {
+    "sudo": false,
+    "wiped": false
+  }
+}
