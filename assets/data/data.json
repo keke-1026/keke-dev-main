@@ -107,6 +107,21 @@
       "title": "keke-dev.net ( Old ver. )",
       "description": "旧ページです",
       "link": "to-url.html?url=https://archive.keke-dev.net/old_main/index.html"
+    },
+    {
+      "title": "4.3mm×2.6mmで紙をつくるやつ",
+      "description": "実は使う場面があったので作った",
+      "link": "to-url.html?url=https://keke-dev.net/4326tool/index.html"
+    },
+    {
+      "title": "リアルタイム同期カウンター",
+      "description": "カウンター｡シンプル｡",
+      "link": "to-url.html?url=https://keke-dev.net/online-clicker/index.html"
+    },
+    {
+      "title": "p2pのことを知りたくて作ったやつ",
+      "description": "知りたくてAIに頼んだものです",
+      "link": "to-url.html?url=https://keke-dev.net/p2pcheck/index.html"
     }
   ],
   "relatedLinks": [

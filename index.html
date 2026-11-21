@@ -268,6 +268,17 @@
         <div class="counter">
           <img src="http://counter.linkserver.jp/@public_main?name=public_main&theme=miku&padding=6&offset=0&align=top&scale=1&pixelated=1&darkmode=auto" alt="カウンター" decoding="async">
         </div>
+        <div class="footer">クローラーアクセス数 : <span id="robots-count">-</span></div>
+          <script>
+            fetch("https://keke-dev.net/api/robots")
+            .then((res) => res.json())
+            .then((data) => {
+            document.getElementById("robots-count").textContent = Number(data.count).toLocaleString();
+          })
+            .catch(() => {
+            document.getElementById("robots-count").textContent = "Error.";
+          });
+          </script>
         <div class="footer">&copy; 2026 keke-dev.net<br><a class="commit-id" id="commit-id" href="#" target="_blank" rel="noopener" hidden></a></div>
       </div>
     </div>
