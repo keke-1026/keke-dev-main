@@ -480,6 +480,13 @@
     //     { "clear": true } / { "wipe": true }
     //   条件: flag(+eq) / has / hasAny / argc / arg(+eq) / args / all / any / not
     //   文字列の中では $rest(引数ぜんぶ) / $1〜$9(n番目の引数) / $last(最後の引数)
+    //   rhythms.<名前> = { notes, tolerance, run: [ 命令, ... ] }   ← 音ゲーの譜面
+    //     入力欄が空のまま Enter を押す。最初の Enter を 0ms として、各 Enter が譜面の位置の ±tolerance(ms) に
+    //     全部入って走りきったら run が動く。1つでも外れたらやり直し(コマンドを打ってもリセット)
+    //     notes: [0, 420, 700, ...]  最初の Enter からの ms(小さい順、30ms 以上あける)。tolerance 既定120
+    //     notes の代わりに pattern ("x.x.xx" / bpm 既定120 / grid 既定2) か intervals ([420, 280, ...] ms) でも書ける
+    //   commands.<名前>.lock = "フラグ名"   そのフラグが立っていないと打っても command not found になる
+    //     リズム専用にしたいコマンドに付けて、rhythms の run から { "exec": "名前", "with": { "フラグ名": true } } で呼ぶ
     //   flags(フラグの初期値)はファイルのいちばん下に書く
     (() => {
       const term = $('term'), out = $('term-out'), form = $('term-form');
@@ -494,6 +501,8 @@
       let hIdx = 0, draft = '', welcomed = false, wiped = false, depth = 0;
       let cfg = { commands: {}, flags: {} }, cfgText = '';
       let flags = new Map(), registry = new Map();
+      let rhythms = [], maxTaps = 0;
+      const taps = [];
 
 
       const cwd = () => { const b = document.querySelector('.nav-btn.active'); return b ? b.dataset.target : 'about'; };
@@ -640,12 +649,64 @@
           for (const [n, d] of Object.entries(o.commands)) {
             if (!n || /\s/.test(n)) return `コマンド名 "${n}" に空白は使えないよ`;
             if (!isObj(d)) return `commands.${n} は { } にしてね`;
+            if ('lock' in d && (typeof d.lock !== 'string' || !d.lock)) return `commands.${n}.lock は "フラグ名" にしてね`;
             if ('run' in d) { const r = checkSteps(d.run, `commands.${n}.run`); if (r) return r; }
+          }
+        }
+        if ('rhythms' in o) {
+          if (!isObj(o.rhythms)) return '"rhythms" は { } にしてね';
+          for (const [n, d] of Object.entries(o.rhythms)) {
+            const r = parseRhythm(d);
+            if (r.error) return `rhythms.${n}: ${r.error}`;
+            if ('run' in d) { const e = checkSteps(d.run, `rhythms.${n}.run`); if (e) return e; }
           }
         }
         if ('flags' in o && !isObj(o.flags)) return '"flags" は { } にしてね';
         return null;
       }
+
+      // rhythm:begin
+      // 譜面(pattern か intervals)を「最初のタップからの経過ms」の配列にする
+      function parseRhythm(d) {
+        if (!isObj(d)) return { error: '{ } にしてね' };
+        let offsets;
+        if (Array.isArray(d.notes)) {
+          const n = d.notes;
+          if (!n.every(x => typeof x === 'number' && isFinite(x) && x >= 0 && x <= 120000)) return { error: 'notes は 0〜120000(ms) の数字の [ ] にしてね' };
+          if (n.some((x, i) => i > 0 && x - n[i - 1] < 30)) return { error: 'notes は小さい順で、30ms 以上あけてね' };
+          offsets = n.map(x => x - n[0]);
+        } else if (typeof d.pattern === 'string') {
+          const bpm = d.bpm === undefined ? 120 : d.bpm;
+          const grid = d.grid === undefined ? 2 : d.grid;
+          if (typeof bpm !== 'number' || !(bpm >= 30 && bpm <= 400)) return { error: 'bpm は 30〜400 の数字にしてね' };
+          if (!Number.isInteger(grid) || grid < 1 || grid > 8) return { error: 'grid は 1〜8 の整数にしてね (1拍を何分割するか)' };
+          const slot = 60000 / bpm / grid, idx = [];
+          [...d.pattern].forEach((c, i) => { if (c === 'x' || c === 'X') idx.push(i); });
+          offsets = idx.map(i => (i - idx[0]) * slot);
+        } else if (Array.isArray(d.intervals)) {
+          if (!d.intervals.every(n => typeof n === 'number' && n >= 30 && n <= 5000)) return { error: 'intervals は 30〜5000(ms) の数字の [ ] にしてね' };
+          let t = 0;
+          offsets = [0, ...d.intervals.map(n => (t += n))];
+        } else return { error: '"notes" か "pattern" か "intervals" が必要だよ' };
+        if (offsets.length < 3) return { error: 'タップは3回以上にしてね (notes を3つ以上)' };
+        const tol = d.tolerance === undefined ? 120 : d.tolerance;
+        if (typeof tol !== 'number' || !(tol >= 10 && tol <= 1000)) return { error: 'tolerance は 10〜1000(ms) の数字にしてね' };
+        return { offsets, tol };
+      }
+      // 空 Enter を1回押すたびに呼ぶ。直近のタップが譜面と(最初のタップ基準で) tol 以内に揃っていたら、その譜面を返す
+      function tapRhythm(t) {
+        if (!maxTaps) return null;
+        taps.push(t);
+        while (taps.length > maxTaps) taps.shift();
+        for (const r of rhythms) {
+          const n = r.offsets.length;
+          if (taps.length < n) continue;
+          const w = taps.slice(-n);
+          if (r.offsets.every((o, i) => Math.abs((w[i] - w[0]) - o) <= r.tol)) { taps.length = 0; return r; }
+        }
+        return null;
+      }
+      // rhythm:end
 
       function test(c, ctx) {
         if (typeof c === 'boolean') return c;
@@ -693,11 +754,16 @@
         if (depth >= MAX_DEPTH) return err('exec: 入れ子が深すぎるよ');
         const parts = t.split(/\s+/), name = parts[0].toLowerCase();
         const cmd = registry.get(name);
-        if (!cmd) { err(`bash: ${parts[0]}: command not found`); dim('help でコマンド一覧が見られるよ'); return; }
+        const notFound = () => { err(`bash: ${parts[0]}: command not found`); dim('help でコマンド一覧が見られるよ'); };
+        if (!cmd) return notFound();
         const prev = new Map();
         if (isObj(withFlags)) for (const [k, v] of Object.entries(withFlags)) { prev.set(k, flags.get(k)); flags.set(k, v); }
         depth++;
-        try { await cmd.run(parts.slice(1), t.slice(parts[0].length).trim()); }
+        try {
+          // lock のコマンドは、フラグが立っていない(=リズムをクリアしていない)と存在しないのと同じ見た目になる
+          if (cmd.lock && !flags.get(cmd.lock)) notFound();
+          else await cmd.run(parts.slice(1), t.slice(parts[0].length).trim());
+        }
         catch (e) { err(`${name}: エラーが出ちゃった`); }
         finally {
           depth--;
@@ -788,10 +854,17 @@
         registry = new Map();
         for (const [n, d] of Object.entries(cfg.commands || {})) {
           registry.set(n.toLowerCase(), {
-            usage: d.usage || n, desc: d.desc || '', hidden: !!d.hidden,
+            usage: d.usage || n, desc: d.desc || '', hidden: !!d.hidden || !!d.lock, lock: d.lock || '',
             run: (args, raw) => runSteps(d.run, { args, raw })
           });
         }
+        rhythms = [];
+        for (const [n, d] of Object.entries(cfg.rhythms || {})) {
+          const r = parseRhythm(d);
+          if (!r.error) rhythms.push({ name: n, offsets: r.offsets, tol: r.tol, run: d.run });
+        }
+        maxTaps = Math.max(0, ...rhythms.map(r => r.offsets.length));
+        taps.length = 0;
       }
       function applyConfig(obj, text) {
         cfg = obj; cfgText = text;
@@ -931,7 +1004,15 @@
         input.value = '';
         draft = '';
         if (wiped) return;
-        if (!text) { hIdx = hist.length; if (isOpen()) echo(''); return; }
+        if (!text) {
+          // 空の Enter はリズム入力のタップとして数える(見た目は普通の空 Enter のまま)
+          hIdx = hist.length;
+          if (isOpen()) echo('');
+          const hit = tapRhythm(e.timeStamp);
+          if (hit) { try { await runSteps(hit.run, { args: [], raw: '' }); } catch (_) { /* 何も出さない */ } }
+          return;
+        }
+        taps.length = 0; // 何かコマンドを打ったらリズムはやり直し
         if (hist[hist.length - 1] !== text) hist.push(text);
         hIdx = hist.length;
         setOpen(true);
